@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>AppLaunchPad Demo</title>
+</head>
+<body>
+<input type="file">
+<button onclick="upload()">UPLOAD</button>
+<button onclick="save()">SAVE</button>
+<!-- <img id='img' src="bg.png"> -->
+<canvas id="myCanvas" width="706px" height="520px"></canvas>
+<script type="text/javascript">
+
+	var file, reader, canvas, ctx, img1, img2;
+
+	function init(){
+		
+		reader = new FileReader();
+		canvas = document.getElementById("myCanvas");
+		ctx = canvas.getContext("2d");
+		img2 = new Image();
+		img1 = new Image();
+
+		img1.src = "bg.png";
+		img2.crossOrigin = "anonymous";
+		img1.crossOrigin = "anonymous";
+
+	   	img1.onload = function(){
+	   		ctx.drawImage(img1, 0, 0);
+	   	}
+
+	   	img2.onload = function(){console.log(img2);
+   			ctx.drawImage(img2, 198, 219, 304, 185);
+   		}
+
+   		reader.onloadend = function () {
+			img2.src = reader.result;
+   		}
+	   	
+	}
+
+   	function upload(){
+   		file = document.querySelector('input[type=file]').files[0];
+
+       	if (file){
+    		reader.readAsDataURL(file);
+       	}
+       	else{
+       		img2.src = "";
+       	}
+   	}
+
+   	function save(){
+   		var image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");  // here is the most important part because if you dont replace you will get a DOM 18 exception.
+
+
+window.location.href=image;
+   	}
+
+	(init());
+
+</script>
+
+</body>
+</html>
