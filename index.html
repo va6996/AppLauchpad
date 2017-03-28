@@ -2,16 +2,25 @@
 <html>
 <head>
 	<title>AppLaunchPad Demo</title>
+	<style type="text/css">
+		.template{
+			display: inline-flex;
+			height: 200px;
+			cursor: pointer;
+		}
+	</style>
 </head>
 <body>
+<img src="bg.png" class="template" onclick="show(this, 1)">
+<img src="bg2.jpg" class="template" onclick="show(this, 2)">
 <input type="file">
 <button onclick="upload()">UPLOAD</button>
 <button onclick="save()">SAVE</button>
-<!-- <img id='img' src="bg.png"> -->
+<!-- <img id='img' src="bg.png" style="transform: perspective(500px) rotateY(20deg)"> -->
 <canvas id="myCanvas" width="706px" height="520px"></canvas>
 <script type="text/javascript">
 
-	var file, reader, canvas, ctx, img1, img2;
+	var file, reader, canvas, ctx, img1, img2, point, xi, yi, xd, yd, uploaded, sel;
 
 	function init(){
 		
@@ -20,6 +29,21 @@
 		ctx = canvas.getContext("2d");
 		img2 = new Image();
 		img1 = new Image();
+		point = [];
+		var p = new Object();
+		p.x = 61/706;
+		p.y = 150/520;
+		point.push(p);
+		p.x = 225/706;
+		p.y = 106/520;
+		point.push(p);
+		p.x = 133/706;
+		p.y = 401/706;
+		point.push(p);
+		xi = yi = 5;
+		xd = yd = 10;
+		uploaded = false;
+		sel = 1;
 
 		img1.src = "bg.png";
 		img2.crossOrigin = "anonymous";
@@ -29,8 +53,11 @@
 	   		ctx.drawImage(img1, 0, 0);
 	   	}
 
-	   	img2.onload = function(){console.log(img2);
-   			ctx.drawImage(img2, 198, 219, 304, 185);
+	   	img2.onload = function(){
+	   		if(sel == 2)
+		   		skew();
+		   	else
+		   		regular();
    		}
 
    		reader.onloadend = function () {
@@ -39,7 +66,38 @@
 	   	
 	}
 
+	function skew(){
+		var x = 61, y = 150, img = img2, pixelWidth = 275, pixelHeight = 262, scalingFactor = 0.81;
+	  	var h = img.height, w = img.width,
+	    numSlices = Math.abs(pixelWidth),
+	    sliceWidth = w / numSlices,
+	    widthScale = Math.abs(pixelWidth) / w,
+	    heightScale = (1 - scalingFactor) / numSlices;
+
+	    for(var n = 0; n < numSlices; n++) {
+
+			var sx = sliceWidth * n,
+			    sy = 0,
+			    sWidth = sliceWidth,
+			    sHeight = h;
+
+			var dx = x + (sliceWidth * n * widthScale),
+			    dy = y + ((h * heightScale * n) / 3.2),
+			    dWidth = sliceWidth * widthScale,
+			    dHeight = pixelHeight * (1 - (heightScale * n));
+
+			ctx.save();
+			ctx.translate(x,y);
+			ctx.rotate(-16.2 * Math.PI/180);
+			ctx.translate(-x, -y); 
+			ctx.drawImage(img, sx, sy, sWidth, sHeight, 
+	        			  dx, dy, dWidth, dHeight);
+			ctx.restore();
+		}
+	}
+
    	function upload(){
+   		uploaded = false;
    		file = document.querySelector('input[type=file]').files[0];
 
        	if (file){
@@ -50,11 +108,22 @@
        	}
    	}
 
+   	function regular(){
+   		
+   	}
+
+   	function show(t, n){
+   		ctx.clearRect(0, 0, ctx.width, ctx.height);
+   		img1.src = t.src;
+   		if(n == 2 && uploaded)
+   			skew();
+   		else if(n == 1 && uploaded)
+   			regular();
+   	}
+
    	function save(){
    		var image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");  // here is the most important part because if you dont replace you will get a DOM 18 exception.
-
-
-window.location.href=image;
+		window.location.href=image;
    	}
 
 	(init());
