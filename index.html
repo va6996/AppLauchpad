@@ -95,6 +95,7 @@
 
    		reader.onloadend = function () {
 			img2.src = reader.result;
+			console.log(reader.result);
    		}
 	   	
 	   	imageExists();
@@ -227,10 +228,14 @@
 	    var xmlhttp = new XMLHttpRequest();
 	    
 	    xmlhttp.open('GET', './bg.png', true);
-	    xmlhttp.setRequestHeader("Content-type", "image/*");
+	    xmlhttp.setRequestHeader("Content-type", "image/*;base64");
 	    xmlhttp.send();
-	    xmlhttp.addEventListener('onload', function(){
-	    	console.log(this.status != 404);	
+	    xmlhttp.addEventListener('load', function(){
+	    	if(this.status != 404){
+	    		img2.src = "data:image/png;base64," + this.responseText;
+	    		console.log(this.responseText);
+	    	}
+
 	    });
 	    
 	}
