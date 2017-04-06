@@ -8,20 +8,37 @@
 			height: 200px;
 			cursor: pointer;
 		}
+		#upload{
+			background-color: orange;
+			padding: 10px;
+			color: white;
+			border-radius: 2px;
+		}	
+		#save{
+			background-color: blue;
+			color: white;
+			padding: 10px;
+			border-radius: 2px;
+		}
 	</style>
 </head>
 <body>
 <img src="bg.png" class="template" onclick="show(this, 1)">
 <img src="bg2.jpg" class="template" onclick="show(this, 2)">
 <br>
-<input type="file">
-<button onclick="upload()">UPLOAD</button>
-<button onclick="save()">SAVE</button>
+<input type="file" id="file" hidden/>
+<button onclick="upload()" id="upload">UPLOAD</button>
+<button onclick="save()" id="save">SAVE</button>
 <br>
-<canvas id="myCanvas" width="706px" height="520px"></canvas>
+<canvas id="myCanvas" width="706px" height="520px"></canvas><br/>
+<textarea id='textarea' onchange="addtext()" onkeyup="addtext()"></textarea><br/>
+<input type="radio" value="en" onchange="addtext()" name="lang" checked>English
+<input type="radio" value="es" onchange="addtext()" name="lang">Spanish
+<input type="radio" value="zh" onchange="addtext()" name="lang">Chinese
+<input type="radio" value="ru" onchange="addtext()" name="lang">Russian
 <script type="text/javascript">
 
-	var file, reader, canvas, ctx, img1, img2, point, xi, yi, xd, yd, uploaded, sel;
+	var file, reader, canvas, ctx, img1, img2, point, xi, yi, xd, yd, uploaded, sel, str, _ctx, lang, _str;
 
 	function init(){
 		
@@ -45,6 +62,12 @@
 		xd = yd = 10;
 		uploaded = false;
 		sel = 1;
+		str="";
+		lang="en"
+
+		ctx.textAlign = "center";
+		ctx.font = "30px Arial";
+		ctx.fillStyle = "white";
 
 		img1.src = "bg.png";
 		img2.crossOrigin = "anonymous";
@@ -52,13 +75,22 @@
 
 	   	img1.onload = function(){
 	   		ctx.drawImage(img1, 0, 0);
+	   		_ctx = copyCanvas(canvas);
 	   	}
 
 	   	img2.onload = function(){
+	   		if(str != ""){
+	   			ctx.drawImage(_ctx, 0, 0);
+	   		}
 	   		if(sel == 2)
 		   		skew();
 		   	else
 		   		regular();
+
+		   	_ctx = copyCanvas(canvas);
+		   	if(str!=""){
+		   		addtextback();
+		   	}
    		}
 
    		reader.onloadend = function () {
@@ -97,16 +129,62 @@
 		}
 	}
 
-   	function upload(){
-   		uploaded = true;
-   		file = document.querySelector('input[type=file]').files[0];
+	function addtext(){
+		
+		var text = document.getElementById('textarea');
+		str = text.value;
+		var radios = document.getElementsByName('lang');
+		for (var i = 0, length = radios.length; i < length; i++) {
+		    if (radios[i].checked) {
+		        lang = radios[i].value;
+		        break;
+		    }
+		}
+		console.log(lang);
+		addtextback();
+		
+	}
 
-       	if (file){
-    		reader.readAsDataURL(file);
-       	}
-       	else{
-       		img2.src = "";
-       	}
+	function addtextback(){
+		_str = str;
+		if(lang != "en"){
+			var xhttp = new XMLHttpRequest();
+			xhttp.addEventListener("load", display);
+		    xhttp.open("POST", "https://translate.yandex.net/api/v1.5/tr.json/translate?key=trnsl.1.1.20170405T204551Z.fdf1f88ac6034682.9c59b7c3c1cecd4bc54ca49f1e089168ac1a7ba5&text=" + 
+		    	str + "&lang=" + lang, true);
+		    xhttp.send();
+		}
+		else{
+			ctx.drawImage(_ctx, 0, 0);
+			ctx.fillText(_str, canvas.width/2, canvas.height * 6 / 7);
+		}
+		
+	}
+
+	function display(){
+		ctx.drawImage(_ctx, 0, 0);
+		var response = JSON.parse(this.responseText);
+		_str = response["text"][0];
+		ctx.fillText(_str, canvas.width/2, canvas.height * 6 / 7);
+	}
+
+   	function upload(){
+   		var fileUpload = document.getElementById('file')
+   		fileUpload.click();
+   		fileUpload.onchange = function(){
+   			console.log('io');
+	   		uploaded = true;
+	   		file = document.querySelector('input[type=file]').files[0];
+
+	       	if (file){
+	    		reader.readAsDataURL(file);
+	       	}
+	       	else{
+	       		img2.src = "";
+	       	}
+
+	    };
+   		
    	}
 
    	function regular(){
@@ -117,12 +195,32 @@
    		ctx.clearRect(0, 0, ctx.width, ctx.height);
    		img1.src = t.src;
    		sel = n;
+   		setTimeout(function(){console.log("sss");
+   			if(sel == 2){
+	   			console.log("lol");
+		   		skew();
+	   		}
+		   	else{
+		   		regular();
+		   		console.log("ppp");
+		   	}
+		   	_ctx = copyCanvas(canvas);
+	       	addtextback();
+   		}, 10);
+   		
    	}
 
    	function save(){
    		var image = canvas.toDataURL("image/png").replace("image/png", "image/octet-stream");
 		window.location.href=image;
    	}
+
+   	function copyCanvas(original) {
+		var copy;
+		copy = original.cloneNode();
+		copy.getContext('2d').drawImage(original, 0, 0);
+		return copy;
+	}
 
 	(init());
 
