@@ -226,7 +226,7 @@
 	function imageExists(){
 	    var xmlhttp = new XMLHttpRequest();
 	    
-	    xmlhttp.open('GET', './bg.png', false);
+	    xmlhttp.open('GET', './bg.png', true);
 	    xmlhttp.setRequestHeader("Content-type", "image/*");
 	    xmlhttp.send();
 	    xmlhttp.addEventListener('onload', function(){
